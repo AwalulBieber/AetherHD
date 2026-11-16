@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowDownToLine, Check, FileImage, FileVideo, Info, Layers2, Maximize2, ShieldCheck, Sparkles, UploadCloud, X, LoaderCircle } from "lucide-react";
+import { enhanceImageWithAI } from "../lib/real-esrgan";
 
 type MediaKind = "image" | "video";
 type FileInfo = { file: File; url: string; kind: MediaKind };
@@ -10,30 +11,6 @@ type JobState = "idle" | "processing" | "done" | "error";
 function formatBytes(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function enhanceImage(file: File, scale: number): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    const source = URL.createObjectURL(file);
-    image.onload = () => {
-      try {
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.min(image.naturalWidth * scale, 8192);
-        canvas.height = Math.min(image.naturalHeight * scale, 8192);
-        const ctx = canvas.getContext("2d");
-        if (!ctx) throw new Error("Your browser does not support canvas processing.");
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = "high";
-        ctx.filter = "contrast(1.06) saturate(1.04)";
-        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Could not export the enhanced image.")), "image/png");
-      } catch (error) { reject(error); }
-      finally { URL.revokeObjectURL(source); }
-    };
-    image.onerror = () => { URL.revokeObjectURL(source); reject(new Error("Could not read this image.")); };
-    image.src = source;
-  });
 }
 
 async function enhanceVideo(file: File, scale: number, onProgress: (value: number) => void): Promise<Blob> {
@@ -124,7 +101,7 @@ export default function Home() {
     setError(""); setResultUrl(""); setJobState("processing"); setProgress(2);
     try {
       const blob = media.kind === "image"
-        ? await enhanceImage(media.file, Number(scale))
+        ? await enhanceImageWithAI(media.file, Number(scale), setProgress)
         : await enhanceVideo(media.file, Number(scale), setProgress);
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
@@ -173,15 +150,15 @@ export default function Home() {
                 <div className="file-chip">{media.kind === "image" ? <FileImage size={15} /> : <FileVideo size={15} />}<span className="file-name">{media.file.name}</span><span className="file-size">{formatBytes(media.file.size)}</span></div>
               </div>
             )}
-            {busy && <div className="progress-wrap"><div className="progress-copy"><span>Processing on this device</span><span>{progress}%</span></div><div className="progress-track"><span style={{ width: `${progress}%` }} /></div></div>}
+            {busy && <div className="progress-wrap"><div className="progress-copy"><span>{media?.kind === "image" ? "Running Real-ESRGAN AI locally" : "Processing video on this device"}</span><span>{progress}%</span></div><div className="progress-track"><span style={{ width: `${progress}%` }} /></div></div>}
             {error && <p className="error-message" role="alert">{error}</p>}
           </div>
           <aside className="settings-panel">
             <div className="panel-title-row"><h3>Output settings</h3><span className="step-number">01</span></div>
             <div className="setting-block"><label className="setting-label">Upscale target</label><div className="scale-options">{["2", "4", "8"].map((item) => <button key={item} disabled={busy} onClick={() => setScale(item)} className={scale === item ? "scale-option selected" : "scale-option"}>{item}×{scale === item && <Check size={13} />}</button>)}</div><p className="setting-help">Output is capped to practical browser limits.</p></div>
             <div className="setting-divider" />
-            <div className="setting-block"><label className="setting-label">Processing engine</label><div className="feature-row"><span className="feature-icon"><Sparkles size={16} /></span><span><b>Image refinement</b><small>High-quality browser canvas</small></span><span className="engine-state">Local</span></div><div className="feature-row"><span className="feature-icon"><Maximize2 size={16} /></span><span><b>Video refinement</b><small>Canvas + browser encoder</small></span><span className="engine-state">Local</span></div></div>
-            <div className="engine-notice"><Info size={15} /><span>Free browser-based upscaling. This uses high-quality resizing and light refinement, not generative AI detail reconstruction. Video exports as WebM.</span></div>
+            <div className="setting-block"><label className="setting-label">Processing engine</label><div className="feature-row"><span className="feature-icon"><Sparkles size={16} /></span><span><b>Real-ESRGAN AI</b><small>Neural super-resolution · 4× model</small></span><span className="engine-state">Local</span></div><div className="feature-row"><span className="feature-icon"><Maximize2 size={16} /></span><span><b>Video refinement</b><small>Canvas + browser encoder</small></span><span className="engine-state">Local</span></div></div>
+            <div className="engine-notice"><Info size={15} /><span>Photos use a real AI super-resolution model on your device. The first run downloads the 4.6 MB model. Video still uses browser resizing and exports as silent WebM.</span></div>
             <button className="enhance-button" disabled={!media || busy || jobState === "done"} onClick={enhance}>{busy ? <><LoaderCircle className="spin" size={16} /> Processing...</> : jobState === "done" ? <><Check size={16} /> Enhancement complete</> : <><Sparkles size={16} /> Enhance media</>}</button>
             {jobState === "done" && resultUrl && <a className="download-button" href={resultUrl} download={resultName}><ArrowDownToLine size={15} /> Download enhanced file</a>}
             {jobState === "error" && <button className="retry-button" onClick={enhance}>Try again</button>}
