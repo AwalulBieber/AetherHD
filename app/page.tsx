@@ -67,7 +67,7 @@ export default function Home() {
         setResultUrl("");
         setJobState("idle");
       };
-      probe.onerror = () => setError("This video format could not be read by your browser.");
+      probe.onerror = () => { setMedia({ file, url: URL.createObjectURL(file), kind: "video" }); setKind("video"); setError(""); setResultUrl(""); setJobState("idle"); };
       probe.src = URL.createObjectURL(file);
       return;
     }
@@ -212,7 +212,7 @@ export default function Home() {
               <div className="feature-row"><span className="feature-icon"><Sparkles size={16} /></span><span><b>Detail recovery</b><small>Real-ESRGAN image model</small></span><span className="engine-state">Ready</span></div>
               <div className="feature-row"><span className="feature-icon"><Maximize2 size={16} /></span><span><b>Video resolution</b><small>BRIA video upscaler</small></span><span className="engine-state">Ready</span></div>
             </div>
-            <div className="engine-notice"><Info size={15} /><span>Processing uses external AI services and may incur usage charges. Uploaded source files are temporary.</span></div>
+            <div className="engine-notice"><Info size={15} /><span>Estimated model cost: photos about $0.002 each; video about $0.05 per output second. A 60-second video can cost about $3. Uploaded source files are temporary.</span></div>
             <button className="enhance-button" disabled={!media || busy || jobState === "done"} onClick={enhance}>
               {busy ? <><LoaderCircle className="spin" size={16} /> {jobState === "uploading" ? "Uploading..." : "Enhancing..."}</> : jobState === "done" ? <><Check size={16} /> Enhancement complete</> : <><Sparkles size={16} /> Enhance media</>}
             </button>
