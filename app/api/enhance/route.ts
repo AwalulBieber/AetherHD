@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
+function getReplicate() {\n  return new Replicate({ auth: process.env.REPLICATE_API_TOKEN! });\n}
 
 function isAllowedBlobUrl(value: unknown): value is string {
   if (typeof value !== "string") return false;
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
       ? { image: inputUrl, scale: Number(scale), face_enhance: true }
       : { video_url: inputUrl, desired_increase: Number(scale), preserve_audio: true, output_container_and_codec: "mp4_h264" };
 
-    const prediction = await replicate.predictions.create({
+    const prediction = await getReplicate().predictions.create({
       model: kind === "image" ? "nightmareai/real-esrgan" : "bria/video-increase-resolution",
       input,
     });
@@ -80,7 +80,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Invalid prediction ID." }, { status: 400 });
   }
   try {
-    const prediction = await replicate.predictions.get(id);
+    const prediction = await getReplicate().predictions.get(id);
     const outputUrl = prediction.status === "succeeded" ? extractOutputUrl(prediction.output) : null;
     const terminalStatuses: string[] = ["succeeded", "failed", "canceled"];
     if (terminalStatuses.includes(prediction.status) && isAllowedBlobUrl(source)) {
