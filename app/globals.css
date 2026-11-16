@@ -94,3 +94,21 @@ button { font: inherit; }
   .bottom-strip { margin: 26px 18px 0; padding: 19px 0; grid-template-columns: 1fr; gap: 16px; }
   .footer { margin: 0 18px; }
 }
+
+
+/* Processing states */
+.progress-wrap { margin: 13px 2px 0; }
+.progress-copy { display: flex; justify-content: space-between; color: #77786f; font-size: 9px; margin-bottom: 7px; }
+.progress-track { height: 4px; background: #ecece7; border-radius: 10px; overflow: hidden; }
+.progress-track span { display: block; height: 100%; background: #34362f; border-radius: inherit; transition: width .35s ease; }
+.error-message { margin: 12px 2px 0; color: #a13e35; font-size: 10px; line-height: 1.5; }
+.engine-state { margin-left: auto; color: #5c765e; background: #edf3ec; padding: 4px 6px; border-radius: 3px; font-size: 8px; }
+.enhance-button:disabled { opacity: .45; cursor: not-allowed; }
+.enhance-button:not(:disabled) { opacity: 1; cursor: pointer; transition: background .2s, transform .2s; }
+.enhance-button:not(:disabled):hover { background: #41433c; }
+.download-button, .retry-button { min-height: 38px; border-radius: 5px; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 9px; font-size: 10px; font-weight: 600; text-decoration: none; }
+.download-button { color: #252620; background: #eceee8; border: 1px solid #dfe1d9; }
+.download-button:hover { background: #e3e5de; }
+.retry-button { color: #55574f; background: transparent; border: 1px solid #dedfd9; cursor: pointer; }
+.spin { animation: aether-spin 1s linear infinite; }
+@keyframes aether-spin { to { transform: rotate(360deg); } }
