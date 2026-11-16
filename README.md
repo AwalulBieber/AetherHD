@@ -1,18 +1,19 @@
 # AetherHD
 
-A free, browser-based image and video refinement studio built with Next.js.
+A free, browser-based image and video enhancement studio built with Next.js.
 
 ## Processing
 
-AetherHD processes selected files locally in the browser. Files are not uploaded to a server and no paid API keys are required.
+AetherHD keeps the selected photo or video on the user's device. No paid inference API or server upload is required.
 
-- Images: high-quality canvas resizing with light contrast and saturation refinement. Exports PNG.
-- Videos: canvas-based resizing and browser MediaRecorder encoding. Exports WebM.
-- Upscale choices: 2×, 4×, and 8×. Browser output dimensions are capped to practical limits.
+- **Photos:** Real-ESRGAN general x4v3 AI super-resolution runs locally in the browser through ONNX Runtime Web (WASM). The first use downloads the approximately 4.9 MB ONNX model; the browser may cache it for later visits. The AI model reconstructs plausible texture and detail, so results are not guaranteed to match the original scene perfectly.
+- **Photo output sizes:** 2×, 4×, or 8×. The AI model itself generates 4× detail; other selected sizes are resampled from that output.
+- **Videos:** Browser canvas resizing and MediaRecorder encoding. Exports WebM and does not preserve the original audio track.
+- **Privacy:** Source media is processed locally. The ONNX model is downloaded from Hugging Face and ONNX Runtime's WebAssembly files are loaded from jsDelivr.
 
-## Important limitations
+## Limitations
 
-This free mode is not generative AI super-resolution. It cannot reconstruct real detail that is absent from the source. Video export depends on browser MediaRecorder support and may not preserve the original audio track. Large files and high upscale factors can use substantial device memory and processing power.
+AI processing can be slow on phones and lower-powered devices. Output is capped at 8,192 pixels per side and 24 megapixels to reduce browser memory failures. Video remains non-AI resizing, is limited to 60 seconds, and may not be supported by every browser.
 
 ## Development
 
@@ -20,3 +21,8 @@ This free mode is not generative AI super-resolution. It cannot reconstruct real
 npm install
 npm run dev
 ```
+
+## Model and runtime credits
+
+- Real-ESRGAN general x4v3 ONNX weights: BSD-3-Clause, based on the Real-ESRGAN project.
+- ONNX Runtime Web: MIT.
