@@ -5,7 +5,9 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-function getReplicate() {\n  return new Replicate({ auth: process.env.REPLICATE_API_TOKEN! });\n}
+function getReplicate() {
+  return new Replicate({ auth: process.env.REPLICATE_API_TOKEN! });
+}
 
 function isAllowedBlobUrl(value: unknown): value is string {
   if (typeof value !== "string") return false;
