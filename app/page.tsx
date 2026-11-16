@@ -113,7 +113,8 @@ export default function Home() {
         const statusResponse = await fetch(`/api/enhance?id=${encodeURIComponent(predictionId)}&source=${encodeURIComponent(blob.url)}`);
         const statusData = await statusResponse.json();
         if (!statusResponse.ok) throw new Error(statusData.error || "Could not check enhancement status.");
-        if (statusData.status === "succeeded" && statusData.outputUrl) {
+        if (statusData.status === "succeeded") {
+          if (!statusData.outputUrl) throw new Error("The model finished but did not return a downloadable file.");
           setResultUrl(statusData.outputUrl);
           setProgress(100);
           setJobState("done");
