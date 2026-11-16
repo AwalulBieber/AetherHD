@@ -67,7 +67,7 @@ export default function Home() {
         setResultUrl("");
         setJobState("idle");
       };
-      probe.onerror = () => { setMedia({ file, url: URL.createObjectURL(file), kind: "video" }); setKind("video"); setError(""); setResultUrl(""); setJobState("idle"); };
+      probe.onerror = () => { URL.revokeObjectURL(probe.src); setMedia({ file, url: URL.createObjectURL(file), kind: "video" }); setKind("video"); setError(""); setResultUrl(""); setJobState("idle"); };
       probe.src = URL.createObjectURL(file);
       return;
     }
@@ -105,7 +105,10 @@ export default function Home() {
       const predictionId = startData.id as string;
 
       let finished = false;
+      let checks = 0;
       while (!finished) {
+        checks += 1;
+        if (checks > 240) throw new Error("This job is taking too long. Check Replicate for its status and try again later.");
         await new Promise((resolve) => setTimeout(resolve, 2500));
         const statusResponse = await fetch(`/api/enhance?id=${encodeURIComponent(predictionId)}&source=${encodeURIComponent(blob.url)}`);
         const statusData = await statusResponse.json();
