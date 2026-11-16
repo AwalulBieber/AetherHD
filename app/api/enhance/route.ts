@@ -82,7 +82,8 @@ export async function GET(request: Request) {
   try {
     const prediction = await replicate.predictions.get(id);
     const outputUrl = prediction.status === "succeeded" ? extractOutputUrl(prediction.output) : null;
-    if (["succeeded", "failed", "canceled"].includes(prediction.status) && isAllowedBlobUrl(source)) {
+    const terminalStatuses: string[] = ["succeeded", "failed", "canceled"];
+    if (terminalStatuses.includes(prediction.status) && isAllowedBlobUrl(source)) {
       await del(source).catch(() => undefined);
     }
     return NextResponse.json({
