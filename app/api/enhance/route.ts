@@ -37,20 +37,30 @@ function extractOutputUrl(output: unknown): string | null {
   return null;
 }
 
+async function removeSource(value: unknown) {
+  if (isAllowedBlobUrl(value)) await del(value).catch(() => undefined);
+}
+
 export async function POST(request: Request) {
-  if (!process.env.REPLICATE_API_TOKEN) {
-    return NextResponse.json({ error: "REPLICATE_API_TOKEN is not configured on the server." }, { status: 503 });
-  }
+  let inputUrl: unknown;
   try {
     const body = await request.json();
-    const { inputUrl, kind, scale } = body as { inputUrl?: unknown; kind?: unknown; scale?: unknown };
+    const { kind, scale } = body as { kind?: unknown; scale?: unknown; inputUrl?: unknown };
+    inputUrl = body.inputUrl;
+
     if (!isAllowedBlobUrl(inputUrl)) {
       return NextResponse.json({ error: "Invalid source file URL." }, { status: 400 });
     }
+    if (!process.env.REPLICATE_API_TOKEN) {
+      await removeSource(inputUrl);
+      return NextResponse.json({ error: "REPLICATE_API_TOKEN is not configured on the server." }, { status: 503 });
+    }
     if (kind !== "image" && kind !== "video") {
+      await removeSource(inputUrl);
       return NextResponse.json({ error: "Unsupported media type." }, { status: 400 });
     }
     if (![2, 4, 8].includes(Number(scale))) {
+      await removeSource(inputUrl);
       return NextResponse.json({ error: "Upscale target must be 2×, 4×, or 8×." }, { status: 400 });
     }
 
@@ -64,6 +74,7 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ id: prediction.id, status: prediction.status });
   } catch (error) {
+    await removeSource(inputUrl);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Could not start the enhancement job." },
       { status: 500 },
@@ -85,9 +96,7 @@ export async function GET(request: Request) {
     const prediction = await getReplicate().predictions.get(id);
     const outputUrl = prediction.status === "succeeded" ? extractOutputUrl(prediction.output) : null;
     const terminalStatuses: string[] = ["succeeded", "failed", "canceled"];
-    if (terminalStatuses.includes(prediction.status) && isAllowedBlobUrl(source)) {
-      await del(source).catch(() => undefined);
-    }
+    if (terminalStatuses.includes(prediction.status)) await removeSource(source);
     return NextResponse.json({
       id: prediction.id,
       status: prediction.status,
