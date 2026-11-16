@@ -96,7 +96,9 @@ export async function GET(request: Request) {
     const prediction = await getReplicate().predictions.get(id);
     const outputUrl = prediction.status === "succeeded" ? extractOutputUrl(prediction.output) : null;
     const terminalStatuses: string[] = ["succeeded", "failed", "canceled"];
-    if (terminalStatuses.includes(prediction.status)) await removeSource(source);
+    const predictionInput = prediction.input as Record<string, unknown> | undefined;
+    const predictionSource = predictionInput?.image ?? predictionInput?.video_url;
+    if (terminalStatuses.includes(prediction.status) && predictionSource === source) await removeSource(source);
     return NextResponse.json({
       id: prediction.id,
       status: prediction.status,
