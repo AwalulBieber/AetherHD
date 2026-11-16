@@ -21,7 +21,7 @@ Create a **public** Vercel Blob store for the project because the Replicate mode
 
 - Maximum source size: 100 MB.
 - Video duration: maximum 60 seconds for the selected BRIA model.
-- Replicate usage is billed separately. Check the current model pricing before processing.
+- Current listed Replicate pricing at integration time: Real-ESRGAN is about $0.002 per output image; BRIA video upscaling is about $0.05 per output second (a 60-second output is about $3). Pricing can change, so confirm on Replicate before processing.
 - The UI supports 2×, 4×, and 8× targets; actual output dimensions are subject to each model's maximum output resolution.
 
 ## Development
