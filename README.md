@@ -1,28 +1,18 @@
 # AetherHD
 
-A minimal image and video enhancement studio built with Next.js.
+A free, browser-based image and video refinement studio built with Next.js.
 
-## AI processing
+## Processing
 
-- Images: Replicate `nightmareai/real-esrgan` for AI upscaling and optional face enhancement.
-- Videos: Replicate `bria/video-increase-resolution` for video upscaling with audio preservation.
-- Uploads: Vercel Blob client uploads, so large media does not pass through the Vercel Function request body.
+AetherHD processes selected files locally in the browser. Files are not uploaded to a server and no paid API keys are required.
 
-## Required environment variables
+- Images: high-quality canvas resizing with light contrast and saturation refinement. Exports PNG.
+- Videos: canvas-based resizing and browser MediaRecorder encoding. Exports WebM.
+- Upscale choices: 2×, 4×, and 8×. Browser output dimensions are capped to practical limits.
 
-Configure these on the Vercel project before running production processing:
+## Important limitations
 
-- `REPLICATE_API_TOKEN` — API token from Replicate. Keep it server-side.
-- `BLOB_READ_WRITE_TOKEN` — created automatically when a Vercel Blob store is connected to the project.
-
-Create a **public** Vercel Blob store for the project because the Replicate models need to fetch the temporary source URL. Source blobs are deleted when the app checks a terminal prediction state; if the browser is closed before that check, the temporary blob may need manual cleanup. While processing, the source URL is temporarily accessible to anyone who has the link.
-
-## Limits and cost
-
-- Maximum source size: 100 MB.
-- Video duration: maximum 60 seconds for the selected BRIA model.
-- Current listed Replicate pricing at integration time: Real-ESRGAN is about $0.002 per output image; BRIA video upscaling is about $0.05 per output second (a 60-second output is about $3). Pricing can change, so confirm on Replicate before processing.
-- The UI supports 2×, 4×, and 8× targets; actual output dimensions are subject to each model's maximum output resolution.
+This free mode is not generative AI super-resolution. It cannot reconstruct real detail that is absent from the source. Video export depends on browser MediaRecorder support and may not preserve the original audio track. Large files and high upscale factors can use substantial device memory and processing power.
 
 ## Development
 
